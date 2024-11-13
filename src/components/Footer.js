@@ -11,7 +11,7 @@ function Footer(props) {
         
         <div className="text-center pt-3">
           <p className="mb-0">
-            <small className=" text-light">&copy; {new Date().getFullYear()} Maternal Health Management System. All rights reserved.</small>
+            <small className=" text-light">&copy; {new Date().getFullYear()} Mom Care. All rights reserved.</small>
           </p>
         </div>
       </div>

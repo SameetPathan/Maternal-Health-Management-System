@@ -24,13 +24,13 @@ function Navbar({ isAuthenticated, onLogout }) {
             fontWeight: "bold",
             textShadow: "1px 1px 2px rgba(0,0,0,0.1)"
           }}>
-            Maternal Health System
+            Mom Care
           </span>
           <span className="d-sm-none" style={{
             fontSize: "1.2rem",
             fontWeight: "bold"
           }}>
-            MHS
+            MCare
           </span>
         </Link>
 
