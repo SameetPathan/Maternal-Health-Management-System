@@ -36,3 +36,21 @@
     transform: rotate(360deg);
   }
 }
+
+
+.hover-card {
+  transition: transform 0.3s ease-in-out;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+}
+
+.carousel-item img {
+  filter: brightness(0.7);
+}
+
+.carousel-caption {
+  bottom: 40%;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
