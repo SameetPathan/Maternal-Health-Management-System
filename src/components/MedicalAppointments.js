@@ -1,16 +1,12 @@
-// components/MedicalAppointments.js
 import React, { useState, useEffect } from 'react';
 import { ref, set, onValue, off } from "firebase/database";
 import { database } from '../firebase-config';
 import Cookies from 'js-cookie';
-
 import { toast } from 'react-toastify';
-import { FaUserMd, FaMapMarkerAlt, FaCalendar, FaClock,FaMdb } from 'react-icons/fa';
-import { motion } from 'framer-motion';
 
 function MedicalAppointments(props) {
-  const { userId } = props;
   const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     doctorName: '',
     location: '',
@@ -21,23 +17,52 @@ function MedicalAppointments(props) {
 
   useEffect(() => {
     props.setisFixed(false);
-  }, []);
+    const fetchAppointments = async () => {
+      try {
+        const userCookie = Cookies.get('user');
+        const userCookieData = JSON.parse(userCookie);
+        const appointmentsRef = ref(database, `MaternalHealthSystem/users/${userCookieData.phone}/appointments`);
+        
+        onValue(appointmentsRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            const appointmentsList = Object.keys(data).map(key => ({
+              id: key,
+              ...data[key]
+            }));
+            setAppointments(appointmentsList.sort((a, b) => new Date(a.date) - new Date(b.date)));
+          } else {
+            setAppointments([]);
+          }
+        });
+      } catch (error) {
+        toast.error('Error fetching appointments');
+      }
+    };
 
+    fetchAppointments();
+
+    return () => {
+      const userCookie = Cookies.get('user');
+      const userCookieData = JSON.parse(userCookie);
+      const appointmentsRef = ref(database, `MaternalHealthSystem/users/${userCookieData.phone}/appointments`);
+      off(appointmentsRef);
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (validateForm()) {
+      setLoading(true);
       try {
         const userCookie = Cookies.get('user');
         const userCookieData = JSON.parse(userCookie);
         
-        let appointmentData = {
+        const appointmentData = {
           ...formData,
           timestamp: Date.now()
         };
 
-        // Create reference using new syntax
         const appointmentRef = ref(database, `MaternalHealthSystem/users/${userCookieData.phone}/appointments/${Date.now()}`);
         await set(appointmentRef, appointmentData);
         
@@ -51,48 +76,11 @@ function MedicalAppointments(props) {
         toast.success('Appointment scheduled successfully!');
       } catch (error) {
         toast.error('Failed to schedule appointment: ' + error.message);
+      } finally {
+        setLoading(false);
       }
     }
-};
-
-useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const userCookie = Cookies.get('user');
-        const userCookieData = JSON.parse(userCookie);
-        
-        // Create reference using new syntax
-        const appointmentsRef = ref(database, `MaternalHealthSystem/users/${userCookieData.phone}/appointments`);
-        
-        onValue(appointmentsRef, (snapshot) => {
-          const data = snapshot.val();
-          if (data) {
-            const appointmentsList = Object.keys(data).map(key => ({
-              id: key,
-              ...data[key]
-            }));
-            setAppointments(appointmentsList);
-          } else {
-            setAppointments([]);
-          }
-        });
-
-      } catch (error) {
-        toast.error('Error fetching appointments');
-      }
-    };
-
-    fetchAppointments();
-
-    // Cleanup subscription
-    return () => {
-      const userCookie = Cookies.get('user');
-      const userCookieData = JSON.parse(userCookie);
-      const appointmentsRef = ref(database, `MaternalHealthSystem/users/${userCookieData.phone}/appointments`);
-      off(appointmentsRef);
-    };
-}, []);
-
+  };
 
   const validateForm = () => {
     let tempErrors = {};
@@ -102,17 +90,14 @@ useEffect(() => {
       tempErrors.doctorName = 'Doctor name is required';
       isValid = false;
     }
-
     if (!formData.location.trim()) {
       tempErrors.location = 'Location is required';
       isValid = false;
     }
-
     if (!formData.date) {
       tempErrors.date = 'Date is required';
       isValid = false;
     }
-
     if (!formData.time) {
       tempErrors.time = 'Time is required';
       isValid = false;
@@ -122,146 +107,163 @@ useEffect(() => {
     return isValid;
   };
 
-
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   return (
-    <motion.div 
-      className="container mt-5"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="row">
-        <div className="col-md-6">
-          <div className="card shadow mb-4">
-            <div className="card-body">
-              <h3 className="card-title mb-4">Schedule Appointment</h3>
+    <div className="container py-5" style={{marginBottom: "150px"}}>
+      <div className="row g-4">
+        <div className="col-lg-5">
+          <div className="card shadow-sm border-0 rounded-3">
+            <div className="card-header py-3" style={{ backgroundColor: '#7555C6', color: 'white' }}>
+              <h4 className="mb-0 fw-bold">Schedule Appointment</h4>
+            </div>
+            <div className="card-body p-4">
               <form onSubmit={handleSubmit}>
-                <div className="form-group mb-3">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <FaUserMd />
-                    </span>
-                    <input
-                      type="text"
-                      className={`form-control ${errors.doctorName ? 'is-invalid' : ''}`}
-                      name="doctorName"
-                      placeholder="Doctor's Name"
-                      value={formData.doctorName}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  {errors.doctorName && <div className="invalid-feedback d-block">{errors.doctorName}</div>}
+                <div className="mb-4">
+                  <label className="form-label fw-semibold">Doctor's Name</label>
+                  <input
+                    type="text"
+                    className={`form-control form-control-lg ${errors.doctorName ? 'is-invalid' : ''}`}
+                    name="doctorName"
+                    placeholder="Enter doctor's name"
+                    value={formData.doctorName}
+                    onChange={handleChange}
+                  />
+                  {errors.doctorName && 
+                    <div className="invalid-feedback">{errors.doctorName}</div>
+                  }
                 </div>
 
-                <div className="form-group mb-3">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <FaMapMarkerAlt />
-                    </span>
-                    <input
-                      type="text"
-                      className={`form-control ${errors.location ? 'is-invalid' : ''}`}
-                      name="location"
-                      placeholder="Location"
-                      value={formData.location}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  {errors.location && <div className="invalid-feedback d-block">{errors.location}</div>}
+                <div className="mb-4">
+                  <label className="form-label fw-semibold">Location</label>
+                  <input
+                    type="text"
+                    className={`form-control form-control-lg ${errors.location ? 'is-invalid' : ''}`}
+                    name="location"
+                    placeholder="Enter clinic/hospital location"
+                    value={formData.location}
+                    onChange={handleChange}
+                  />
+                  {errors.location && 
+                    <div className="invalid-feedback">{errors.location}</div>
+                  }
                 </div>
 
-                <div className="form-group mb-3">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <FaCalendar />
-                    </span>
-                    <input
-                      type="date"
-                      className={`form-control ${errors.date ? 'is-invalid' : ''}`}
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  {errors.date && <div className="invalid-feedback d-block">{errors.date}</div>}
+                <div className="mb-4">
+                  <label className="form-label fw-semibold">Date</label>
+                  <input
+                    type="date"
+                    className={`form-control form-control-lg ${errors.date ? 'is-invalid' : ''}`}
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                  {errors.date && 
+                    <div className="invalid-feedback">{errors.date}</div>
+                  }
                 </div>
 
-                <div className="form-group mb-3">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <FaClock />
-                    </span>
-                    <input
-                      type="time"
-                      className={`form-control ${errors.time ? 'is-invalid' : ''}`}
-                      name="time"
-                      value={formData.time}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  {errors.time && <div className="invalid-feedback d-block">{errors.time}</div>}
+                <div className="mb-4">
+                  <label className="form-label fw-semibold">Time</label>
+                  <input
+                    type="time"
+                    className={`form-control form-control-lg ${errors.time ? 'is-invalid' : ''}`}
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                  />
+                  {errors.time && 
+                    <div className="invalid-feedback">{errors.time}</div>
+                  }
                 </div>
 
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   type="submit"
-                  className="btn btn-primary w-100"
+                  className="btn btn-lg w-100 text-white"
+                  style={{ backgroundColor: '#7555C6' }}
+                  disabled={loading}
                 >
+                  {loading ? (
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  ) : null}
                   Schedule Appointment
-                </motion.button>
+                </button>
               </form>
             </div>
           </div>
         </div>
 
-        <div className="col-md-6">
-          <div className="card shadow">
-            <div className="card-body">
-              <h3 className="card-title mb-4">Your Appointments</h3>
+        <div className="col-lg-7">
+          <div className="card shadow-sm border-0 rounded-3">
+            <div className="card-header py-3" style={{ backgroundColor: '#7555C6', color: 'white' }}>
+              <h4 className="mb-0 fw-bold">Upcoming Appointments</h4>
+            </div>
+            <div className="card-body p-4">
               {appointments.length === 0 ? (
-                <p className="text-muted">No appointments scheduled</p>
+                <div className="text-center py-5">
+                  <div className="mb-3">
+                   
+                  </div>
+                  <h5 className="text-muted">No appointments scheduled</h5>
+                  <p className="text-muted mb-0">Your upcoming appointments will appear here</p>
+                </div>
               ) : (
-                appointments.map(appointment => (
-                  <motion.div 
-                    key={appointment.id}
-                    className="card mb-3"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                  >
-                    <div className="card-body">
-                      <h5 className="card-title">
-                      <FaMdb className="me-2" />
-                        {appointment.doctorName}
-                      </h5>
-                      <p className="card-text">
-                        <FaMapMarkerAlt className="me-2" />
-                        {appointment.location}
-                      </p>
-                      <p className="card-text">
-                        <FaCalendar className="me-2" />
-                        {appointment.date}
-                        <FaClock className="ms-3 me-2" />
-                        {appointment.time}
-                      </p>
+                <div className="row g-4">
+                  {appointments.map(appointment => (
+                    <div key={appointment.id} className="col-12">
+                      <div className="card h-100 border-0 shadow-sm">
+                        <div className="card-body">
+                          <div className="row align-items-center">
+                            <div className="col-md-6">
+                              <h5 className="card-title fw-bold mb-3">{appointment.doctorName}</h5>
+                              <p className="card-text mb-2">
+                                <span className="text-muted">Location: </span>
+                                {appointment.location}
+                              </p>
+                            </div>
+                            <div className="col-md-6 text-md-end">
+                              <p className="card-text mb-2">
+                                <span className="badge text-bg-light p-2 fw-normal">
+                                  {new Date(appointment.date).toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                              </p>
+                              <p className="card-text mb-0">
+                                <span className="badge text-bg-light p-2 fw-normal">
+                                  {appointment.time}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </motion.div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

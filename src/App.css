@@ -54,3 +54,167 @@
   bottom: 40%;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
+
+
+.popup {
+  position: fixed; 
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); 
+  border: 3px solid #f1f1f1;
+  z-index: 1; /* Ensure it's on top */
+  width: 80%; 
+  max-width: 300px; 
+}
+
+.popup-content {
+  background-color: #fefefe;
+  margin: 15px; 
+  padding: 20px;
+  border-radius: 5px;
+  position: relative;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Add to your global CSS file */
+.navbar {
+  transition: all 0.3s ease;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+}
+
+.nav-link {
+  transition: all 0.2s ease;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
+}
+
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    background: white;
+    padding: 1rem;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .navbar-collapse .nav-link {
+    color: #333 !important;
+  }
+}
+
+.form-floating label {
+  display: flex;
+  align-items: center;
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.form-control:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.btn {
+  transition: all 0.2s ease;
+}
+
+.hover-shadow-lg {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-shadow-lg:hover {
+  box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.form-floating label {
+  display: flex;
+  align-items: center;
+}
+
+.modal {
+  transition: opacity 0.3s ease;
+}
+
+.form-floating label {
+  display: flex;
+  align-items: center;
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.form-control:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.btn {
+  transition: all 0.2s ease;
+}
+
+textarea.form-control {
+  resize: none;
+}
+
+/* Custom styles for DatePicker */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__input-container input {
+  width: 100%;
+  padding: 1rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+}
+
+/* Card hover effect */
+.card {
+  transition: all 0.3s ease;
+}
+
+.shadow-sm {
+  transition: box-shadow 0.3s ease;
+}
+
+.shadow-sm:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+/* Form floating labels */
+.form-floating label {
+  display: flex;
+  align-items: center;
+}
+
+/* Sticky form positioning */
+.sticky-top {
+  z-index: 1020;
+}

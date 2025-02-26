@@ -5,18 +5,32 @@ import { database } from '../firebase-config';
 import { toast } from 'react-toastify';
 import { 
   FaSignOutAlt, FaUser, FaEnvelope, FaPhone, 
-  FaWeight, FaHistory, FaPencilAlt, FaSave, FaTimes,
-  FaHeartbeat, FaBaby, FaCalendarCheck
+  FaPencilAlt, FaSave, FaTimes, FaHospital, 
+  FaMedkit, FaUserMd, FaCalendarCheck, 
+  FaStethoscope, FaBriefcaseMedical, FaNotesMedical
 } from 'react-icons/fa';
 import Cookies from "js-cookie";
+import { FaStar } from 'react-icons/fa';
 
-function Dashboard(props) {
+function HospitalDashboard(props) {
   const { user, onLogout } = props;
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({ ...user });
+  const [stats, setStats] = useState({
+    patientCount: 0,
+    appointmentsToday: 0,
+    reviewsCount: 0
+  });
 
   useEffect(() => {
     props.setisFixed(false);
+    // Here you would fetch real stats from Firebase
+    // For now using placeholder data
+    setStats({
+      patientCount: 24,
+      appointmentsToday: 8,
+      reviewsCount: 16
+    });
   }, []);
 
   const handleEdit = () => {
@@ -40,10 +54,11 @@ function Dashboard(props) {
       });
       const userDataForCookie = {
         ...editedData,
-        phone: user.phone 
+        phone: user.phone,
+        userType: 'hospital' 
       }
       Cookies.set("user", JSON.stringify(userDataForCookie), { expires: 7 });
-      toast.success('Profile updated successfully!');
+      toast.success('Hospital profile updated successfully!');
       setIsEditing(false);
     } catch (error) {
       toast.error('Update failed: ' + error.message);
@@ -67,8 +82,25 @@ function Dashboard(props) {
     visible: { opacity: 1, x: 0 }
   };
 
-  const stats = [
-    
+  const healthcareStats = [
+    {
+      icon: FaUser,
+      label: "Patients",
+      value: stats.patientCount,
+      color: "text-primary"
+    },
+    {
+      icon: FaCalendarCheck,
+      label: "Today's Appointments",
+      value: stats.appointmentsToday,
+      color: "text-success"
+    },
+    {
+      icon: FaStar,
+      label: "Reviews",
+      value: stats.reviewsCount,
+      color: "text-warning"
+    }
   ];
 
   return (
@@ -81,46 +113,37 @@ function Dashboard(props) {
       >
         {/* Welcome Banner */}
         <motion.div 
-          className="card mb-4 border-0 bg-primary text-white shadow-lg"
+          className="card mb-4 border-0 shadow-lg"
           style={{
             borderRadius: "20px",
-            background: "linear-gradient(135deg, #0d6efd 0%, #6610f2 100%)"
+            background: "linear-gradient(135deg, #6B5B95 0%, #9370DB 100%)"
           }}
         >
           <div className="card-body p-4">
             <div className="row align-items-center">
               <div className="col-md-6">
-                <h1 className="display-6 fw-bold mb-3">Welcome back, {user.name}!</h1>
-                <p className="lead mb-0">Track your pregnancy journey with us</p>
+                <h1 className="display-6 fw-bold mb-3 text-white">Welcome, Dr. {user.name}!</h1>
+                <p className="lead mb-0 text-white">Manage your maternal healthcare services</p>
               </div>
               <div className="col-md-6">
-                <div className="row g-3">
-                  {stats.map((stat, index) => (
-                    <div key={index} className="col-md-4">
-                      <div className="card bg-white bg-opacity-25 border-0">
-                        <div className="card-body text-center p-3">
-                          <stat.icon className={`${stat.color} mb-2`} size={24} />
-                          <h6 className="mb-1">{stat.label}</h6>
-                          <h4 className="mb-0 fw-bold">{stat.value}</h4>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+      
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Profile Section */}
+ 
+
+        {/* Hospital Profile Section */}
         <motion.div 
           className="card border-0 shadow-lg"
           style={{ borderRadius: "20px" }}
           whileHover={{ boxShadow: "0px 10px 30px rgba(0,0,0,0.1)" }}
+          variants={itemVariants}
         >
           <div className="card-body p-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h4 className="mb-0 text-primary fw-bold">Profile Information</h4>
+              <h4 className="mb-0 text-primary fw-bold">Hospital Information</h4>
               {!isEditing ? (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -169,8 +192,8 @@ function Dashboard(props) {
                     placeholder="Name"
                   />
                   <label htmlFor="name">
-                    <FaUser className="me-2 text-primary" />
-                    Full Name
+                    <FaUserMd className="me-2 text-primary" />
+                    Doctor Name
                   </label>
                 </div>
               </div>
@@ -178,18 +201,18 @@ function Dashboard(props) {
               <div className="col-md-6">
                 <div className="form-floating">
                   <input
-                    type="number"
+                    type="text"
                     className={`form-control ${isEditing ? '' : 'bg-light'}`}
-                    id="age"
-                    name="age"
-                    value={isEditing ? editedData.age : user.age}
+                    id="hospitalName"
+                    name="hospitalName"
+                    value={isEditing ? editedData.hospitalName : user.hospitalName}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    placeholder="Age"
+                    placeholder="Hospital Name"
                   />
-                  <label htmlFor="age">
-                    <FaUser className="me-2 text-primary" />
-                    Age
+                  <label htmlFor="hospitalName">
+                    <FaHospital className="me-2 text-primary" />
+                    Hospital Name
                   </label>
                 </div>
               </div>
@@ -233,35 +256,58 @@ function Dashboard(props) {
               <div className="col-md-6">
                 <div className="form-floating">
                   <input
-                    type="number"
+                    type="text"
                     className={`form-control ${isEditing ? '' : 'bg-light'}`}
-                    id="currentWeight"
-                    name="currentWeight"
-                    value={isEditing ? editedData.currentWeight : user.currentWeight}
+                    id="specialization"
+                    name="specialization"
+                    value={isEditing ? editedData.specialization : user.specialization}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    placeholder="Weight"
+                    placeholder="Specialization"
                   />
-                  <label htmlFor="currentWeight">
-                    <FaWeight className="me-2 text-primary" />
-                    Current Weight (kg)
+                  <label htmlFor="specialization">
+                    <FaStethoscope className="me-2 text-primary" />
+                    Specialization
+                  </label>
+                </div>
+              </div>
+
+              <div className="col-md-6">
+                <div className="form-floating">
+                  <input
+                    type="text"
+                    className={`form-control ${isEditing ? '' : 'bg-light'}`}
+                    id="licenseNumber"
+                    name="licenseNumber"
+                    value={isEditing ? editedData.licenseNumber : user.licenseNumber}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    placeholder="License Number"
+                  />
+                  <label htmlFor="licenseNumber">
+                    <FaBriefcaseMedical className="me-2 text-primary" />
+                    License Number
                   </label>
                 </div>
               </div>
 
               <div className="col-12">
+              <label htmlFor="hospitalDescription">
+              <FaNotesMedical className="me-2 text-primary" />
+              Hospital Description
+            </label>
                 <div className="form-floating">
                   <textarea
                     className={`form-control ${isEditing ? '' : 'bg-light'}`}
-                    id="medicalHistory"
-                    name="medicalHistory"
-                    value={isEditing ? editedData.medicalHistory : user.medicalHistory}
+                    id="hospitalDescription"
+                    name="hospitalDescription"
+                    value={isEditing ? editedData.hospitalDescription : (user.hospitalDescription || 'No description provided.')}
                     onChange={handleChange}
                     disabled={!isEditing}
-          
+                    placeholder="Hospital Description"
                     style={{ height: "120px" }}
                   />
-  
+                 
                 </div>
               </div>
             </div>
@@ -272,4 +318,6 @@ function Dashboard(props) {
   );
 }
 
-export default Dashboard;
+
+
+export default HospitalDashboard;
